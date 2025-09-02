@@ -49,9 +49,10 @@ make run2
 ---
 
 ## 👨‍💻 Contributors
-Izza Arooj Bscs22006
-Muhammad Ahmad Bscs22026
-Talha Sikandar Bscs22050
-Ayesha Sidiqqa Bscs22106
+- Izza Arooj Bscs22006
+- Muhammad Ahmad Bscs22026
+- Talha Sikandar Bscs22050
+- Ayesha Sidiqqa Bscs22106
 
 ---
+

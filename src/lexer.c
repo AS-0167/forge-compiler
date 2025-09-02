@@ -244,10 +244,11 @@ Token *nextToken(Lexer *l) {
     if (isDigit(l->src[l->pos])) {
       int start_col = l->col;
       int start_line = l->line;
+      int start_pos = l->pos;
       int has_dot = 0;
       char *buffer = malloc(sizeof(char) * 64);
       int buf_index = 0;
-      while (l->pos < strlen(l->src) && (isDigit(l->src[l->pos]) || l->src[l->pos] == '.')) {
+      while (l->pos < strlen(l->src) && ((isDigit(l->src[l->pos]) || l->src[l->pos] == '.')) && !isSpace(l->src[l->pos])) {
         if (l->src[l->pos] == '.') {
           if (has_dot) {
             report_error(l->filename, l->src, start_line, start_col,
@@ -268,13 +269,22 @@ Token *nextToken(Lexer *l) {
           buffer = new_buffer;
         }
       }
-      buffer[buf_index] = '\0';
-      char *value = strdup(buffer);
-      tok->type = has_dot ? T_FLOATLIT : T_INTLIT;
-      tok->lexeme = value;
-      tok->line = start_line;
-      tok->col = start_col;
-      return tok;
+      if (!isSpace(l->src[l->pos])) {
+        l->pos = start_pos;
+        l->col = start_col;
+        l->line = start_line;
+      }
+      else {
+        buffer[buf_index] = '\0';
+        char *value = strdup(buffer);
+        tok->type = has_dot ? T_FLOATLIT : T_INTLIT;
+        tok->lexeme = value;
+        tok->line = start_line;
+        tok->col = start_col;
+        return tok;
+
+      }
+      
     }
 
     //identify identifiers and keywords
@@ -358,6 +368,96 @@ Token *nextToken(Lexer *l) {
       tok->col = col;
       return tok;
     }
+    if (l->src[l->pos] == '+' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_PLUSASS;
+      tok->lexeme = "++";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '-' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_MINUSASS;
+      tok->lexeme = "--";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '*' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_MULTASS;
+      tok->lexeme = "*=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '/' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_DIVASS;
+      tok->lexeme = "/=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '%' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_MODASS;
+      tok->lexeme = "%="; 
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '&' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_BITANDASS;
+      tok->lexeme = "&=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '|' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_BITORASS;
+      tok->lexeme = "|=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '^' && l->src[l->pos + 1] == '=') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_BITXORASS;
+      tok->lexeme = "^=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '<' && l->src[l->pos + 1] == '<' && l->src[l->pos + 2] == '=') {
+      l->pos += 3;
+      l->col += 3;
+      tok->type = T_LSHIFTASS;
+      tok->lexeme = "<<=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '>' && l->src[l->pos + 1] == '>' && l->src[l->pos + 2] == '=') {
+      l->pos += 3;
+      l->col += 3;  
+      tok->type = T_RSHIFTASS;
+      tok->lexeme = ">>=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
     if (l->src[l->pos] == '<' && l->src[l->pos + 1] == '=') {
       l->pos += 2;
       l->col += 2;
@@ -372,6 +472,42 @@ Token *nextToken(Lexer *l) {
       l->col += 2;
       tok->type = T_GE;
       tok->lexeme = ">=";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '<' && l->src[l->pos + 1] == '<') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_LSHIFT;
+      tok->lexeme = "<<";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '>' && l->src[l->pos + 1] == '>') {
+      l->pos += 2;
+      l->col += 2;
+      tok->type = T_RSHIFT;
+      tok->lexeme = ">>";
+      tok->line = line;
+      tok->col = col; 
+      return tok;
+    }
+    if (l->src[l->pos] == '+' && l->src[l->pos + 1] == '+') {
+      l->pos+=2;
+      l->col+=2;
+      tok->type = T_PLUSASS;
+      tok->lexeme = "^";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '-' && l->src[l->pos + 1] == '-') {
+      l->pos+=2;
+      l->col+=2;
+      tok->type = T_MINUSMINUS;
+      tok->lexeme = "--";
       tok->line = line;
       tok->col = col;
       return tok;
@@ -544,6 +680,69 @@ Token *nextToken(Lexer *l) {
       l->col++;
       tok->type = T_NOT;
       tok->lexeme = "!";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '&') {
+      l->pos++;
+      l->col++;
+      tok->type = T_BITAND;
+      tok->lexeme = "&";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '|') {
+      l->pos++;
+      l->col++;
+      tok->type = T_BITOR;
+      tok->lexeme = "|";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '^') {
+      l->pos++;
+      l->col++;
+      tok->type = T_BITXOR;
+      tok->lexeme = "^";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '~') {
+      l->pos++;
+      l->col++;
+      tok->type = T_BITNOT;
+      tok->lexeme = "~";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '.') {
+      l->pos++;
+      l->col++;
+      tok->type = T_DOT;
+      tok->lexeme = ".";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == ':') {
+      l->pos++;
+      l->col++;
+      tok->type = T_COLON;
+      tok->lexeme = ":";
+      tok->line = line;
+      tok->col = col;
+      return tok;
+    }
+    if (l->src[l->pos] == '?') {
+      l->pos++;
+      l->col++;
+      tok->type = T_QUESTION;
+      tok->lexeme = "?";
       tok->line = line;
       tok->col = col;
       return tok;

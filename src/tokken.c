@@ -30,7 +30,10 @@ void print_token(Token *tok) {
 }
 
 const char *token_type_to_string(TokenType type) {
+  printf("Converting token type %d to string\n", type);
+  
   switch (type) {
+
     case T_INT: return "T_INT";
     case T_FLOAT: return "T_FLOAT";
     case T_STRING: return "T_STRING";
@@ -76,8 +79,30 @@ const char *token_type_to_string(TokenType type) {
     case T_FOR: return "T_FOR";
     case T_PRINT: return "T_PRINT";
     case T_COMMENT: return "T_COMMENT";
-    case T_QUOTE: return "T_QUOTE";
+    case T_DOT: return "T_DOT";
+    case T_COLON: return "T_COLON";
+    case T_QUESTION: return "T_QUESTION";
+    case T_SPACE: return "T_SPACE";
+    case T_BITAND: return "T_BITAND";
+    case T_BITOR: return "T_BITOR";
+    case T_BITXOR: return "T_BITXOR";
+    case T_BITNOT: return "T_BITNOT";
+    case T_LSHIFT: return "T_LSHIFT";
+    case T_RSHIFT: return "T_RSHIFT";
+    case T_PLUSPLUS: return "T_PLUSPLUS";
+    case T_MINUSMINUS: return "T_MINUSMINUS";
+    case T_PLUSASS: return "T_PLUSASS";
+    case T_MINUSASS: return "T_MINUSASS";
+    case T_MULTASS: return "T_MULTASS";
+    case T_DIVASS: return "T_DIVASS";
+    case T_MODASS: return "T_MODASS";
+    case T_BITANDASS: return "T_BITANDASS";
+    case T_BITORASS: return "T_BITORASS";
+    case T_BITXORASS: return "T_BITXORASS";
+    case T_LSHIFTASS: return "T_LSHIFTASS";
+    case T_RSHIFTASS: return "T_RSHIFTASS";
+    // case T_SPACE: return "T_SPACE";
     case T_EOF: return "T_EOF";
-    default: return "UNKNOWN";
+    // default: return "UNKNOWN";
   }
 }

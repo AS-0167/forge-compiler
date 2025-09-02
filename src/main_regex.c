@@ -15,9 +15,14 @@ int main() {
         Token *tok = nextRegexToken(&l);
         // if (!tok) break;
         if (tok->type == T_EOF) break;
+        if (tok->type == T_SPACE) {
+            // destroy_token(tok);
+            continue;
+        }
         print_token(tok);
         destroy_token(tok);
     }
     free(src);
+    printf("Done.\n");
     return 0;
 }
