@@ -73,10 +73,10 @@ typedef enum {
 } TokenType;
 
 typedef struct {
-  TokenType type;
-  char *lexeme;
-  int line;
-  int col;
+  TokenType type;    // What kind of token (keyword, operator, literal, etc.)
+  char *lexeme;      // The actual text from source code
+  int line;          // Line number where token was found
+  int col;           // Column number where token starts
 } Token;
 
 Token *create_token(TokenType type, const char *lexeme, int line, int col);
