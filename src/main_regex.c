@@ -4,6 +4,8 @@
 #include "../include/lexer_regex.h"
 
 int main() {
+    float f =6e5;
+    printf("Float test: %f\n", f);
     printf("Regex Lexer Test\n");
     char *filename = "example/test.c";
     char *src;

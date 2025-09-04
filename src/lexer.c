@@ -62,17 +62,18 @@ Token *nextToken(Lexer *l) {
           l->pos++;
         }
         if (l->pos < strlen(l->src)) {
-          l->pos += 1;
-          l->col += 1;
+          l->pos += 2;
+          l->col += 2;
+          tok->type = T_COMMENT;
+          tok->lexeme = "/*";
+          tok->line = l->line;
+          tok->col = col;
+        return tok;
         }
-        if (!comment_closed) {
+        else {
           report_error(l->filename, l->src, l->line, l->col, "Unterminated comment");
         }
-        tok->type = T_COMMENT;
-        tok->lexeme = "/*";
-        tok->line = l->line;
-        tok->col = col;
-        return tok;
+        
       }
     }
 
@@ -240,52 +241,146 @@ Token *nextToken(Lexer *l) {
       return tok;
     }
 
-    // Identifying numbers (integers and floats)
-    if (isDigit(l->src[l->pos])) {
+    if (isDigit(l->src[l->pos]) || (l->src[l->pos] == '.' && isDigit(l->src[l->pos + 1]))) {
       int start_col = l->col;
       int start_line = l->line;
       int start_pos = l->pos;
       int has_dot = 0;
+      int has_exp = 0;
       char *buffer = malloc(sizeof(char) * 64);
       int buf_index = 0;
-      while (l->pos < strlen(l->src) && ((isDigit(l->src[l->pos]) || l->src[l->pos] == '.')) && !isSpace(l->src[l->pos])) {
-        if (l->src[l->pos] == '.') {
-          if (has_dot) {
-            report_error(l->filename, l->src, start_line, start_col,
-                        "invalid number format");
-          }
-          has_dot = 1;
-        }
-        buffer[buf_index++] = l->src[l->pos];
-        l->pos++;
-        l->col++;
-        if (buf_index >= (int)sizeof(buffer) - 1) {
-          char *new_buffer = realloc(buffer, sizeof(char) * (buf_index + 64));
-          if (!new_buffer) {
-            free(buffer);
-            report_error(l->filename, l->src, start_line, start_col,
-                        "memory allocation failed");
-          }
-          buffer = new_buffer;
-        }
-      }
-      if (!isSpace(l->src[l->pos])) {
-        l->pos = start_pos;
-        l->col = start_col;
-        l->line = start_line;
-      }
-      else {
-        buffer[buf_index] = '\0';
-        char *value = strdup(buffer);
-        tok->type = has_dot ? T_FLOATLIT : T_INTLIT;
-        tok->lexeme = value;
-        tok->line = start_line;
-        tok->col = start_col;
-        return tok;
 
+      while (l->pos < strlen(l->src) && !isSpace(l->src[l->pos])) {
+          char c = l->src[l->pos];
+
+          if (isDigit(c)) {
+              // okay
+          } else if (c == '.') {
+              if (has_dot) {
+                  report_error(l->filename, l->src, start_line, start_col,
+                              "invalid number format (multiple dots)");
+              }
+              has_dot = 1;
+          } else if (c == 'e' || c == 'E') {
+              if (has_exp) {
+                  report_error(l->filename, l->src, start_line, start_col,
+                              "invalid number format (multiple exponents)");
+              }
+              has_exp = 1;
+              // look ahead: allow optional + or -
+              buffer[buf_index++] = c;
+              l->pos++;
+              l->col++;
+              if (l->src[l->pos] == '+' || l->src[l->pos] == '-') {
+                  buffer[buf_index++] = l->src[l->pos];
+                  l->pos++;
+                  l->col++;
+              }
+              // require at least one digit after exponent
+              if (!isDigit(l->src[l->pos])) {
+                  report_error(l->filename, l->src, start_line, start_col,
+                              "invalid number format (malformed exponent)");
+              }
+              continue; // skip normal increment, we already advanced
+          } else if (strchr("+-*/%<>=!&|^;:,(){}[]", c) || c == '\0') {
+              break; // delimiter -> stop scanning number
+          } else {
+              // not valid number character
+              break;
+          }
+
+          buffer[buf_index++] = c;
+          l->pos++;
+          l->col++;
+
+          if (buf_index >= (int)sizeof(buffer) - 1) {
+              char *new_buffer = realloc(buffer, buf_index + 64);
+              if (!new_buffer) {
+                  free(buffer);
+                  report_error(l->filename, l->src, start_line, start_col,
+                              "memory allocation failed");
+              }
+              buffer = new_buffer;
+          }
       }
+
+      buffer[buf_index] = '\0';
+
+      // validate end
+      char next = l->src[l->pos];
+      if (l->src[l->pos - 1] == '.') {
+          // number cannot end with dot
+          l->pos = start_pos;
+          l->col = start_col;
+          l->line = start_line;
+          report_error(l->filename, l->src, start_line, start_col,
+                      "invalid number format (trailing dot)");
+      }
+      if (!(next == '\0' || isSpace(next) || strchr("+-*/%<>=!&|^;:,(){}[]", next))) {
+          l->pos = start_pos;
+          l->col = start_col;
+          l->line = start_line;
+          report_error(l->filename, l->src, start_line, start_col,
+                      "invalid number format (invalid trailing character)");
+      } else {
+          char *value = strdup(buffer);
+          tok->type = (has_dot || has_exp) ? T_FLOATLIT : T_INTLIT;
+          tok->lexeme = value;
+          tok->line = start_line;
+          tok->col = start_col;
+          return tok;
+      }
+  }
+
+
+    // // Identifying numbers (integers and floats)
+    // if (isDigit(l->src[l->pos]) || (l->src[l->pos] == '.' && isDigit(l->src[l->pos + 1]))) {
+    //   int start_col = l->col;
+    //   int start_line = l->line;
+    //   int start_pos = l->pos;
+    //   int has_dot = 0;
+    //   char *buffer = malloc(sizeof(char) * 64);
+    //   int buf_index = 0;
+    //   while (l->pos < strlen(l->src) && ((isDigit(l->src[l->pos]) || (l->src[l->pos] == '.' && isDigit(l->src[l->pos + 1])))) && !isSpace(l->src[l->pos])) {
+    //     if (l->src[l->pos] == '.') {
+    //       if (has_dot) {
+    //         report_error(l->filename, l->src, start_line, start_col,
+    //                     "invalid number format");
+    //       }
+    //       has_dot = 1;
+    //     }
+    //     buffer[buf_index++] = l->src[l->pos];
+    //     l->pos++;
+    //     l->col++;
+    //     if (buf_index >= (int)sizeof(buffer) - 1) {
+    //       char *new_buffer = realloc(buffer, sizeof(char) * (buf_index + 64));
+    //       if (!new_buffer) {
+    //         free(buffer);
+    //         report_error(l->filename, l->src, start_line, start_col,
+    //                     "memory allocation failed");
+    //       }
+    //       buffer = new_buffer;
+    //     }
+    //   }
+    //   if (!isSpace(l->src[l->pos]) && l->src[l->pos] != '\0' && !strchr("+-*/%<>=!&|^;:,)}]\n\r\t", l->src[l->pos])) {
+    //     l->pos = start_pos;
+    //     l->col = start_col;
+    //     l->line = start_line;
+    //     report_error(l->filename, l->src, start_line, start_col,
+    //                 "invalid number format");
+    //   }
+    //   else {
+    //     buffer[buf_index] = '\0';
+    //     char *value = strdup(buffer);
+    //     tok->type = has_dot ? T_FLOATLIT : T_INTLIT;
+    //     tok->lexeme = value;
+    //     tok->line = start_line;
+    //     tok->col = start_col;
+    //     return tok;
+
+    //   }
       
-    }
+    // }
 
     //identify identifiers and keywords
     if (isAlpha(l->src[l->pos]) || l->src[l->pos] == '_') {

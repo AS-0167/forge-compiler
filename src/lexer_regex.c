@@ -4,10 +4,22 @@ Rule rules[] = {
   {"^[ \t\n\r]+", T_SPACE},
   {"^//[^\n]*", T_COMMENT},
   {"^/\\*([^*]|\\*+[^*/])*\\*+/", T_COMMENT},
-  {"^[0-9]+\\.[0-9]* ", T_FLOATLIT},
-  {"^[0-9]+ ", T_INTLIT},
+//   {"^[0-9]+\\.[0-9]*(?=$|[ \t\n\r;:,(){}\\[\\]\\+\\-\\*/%<>=!&|^])", T_FLOATLIT},
+//   {"^[0-9]+(?=$|[ \t\n\r;:,(){}\\[\\]\\+\\-\\*/%<>=!&|^])", T_INTLIT},
+
+//   {"^[0-9]*\\.[0-9]+", T_FLOATLIT},
+  {"^[0-9]*\\.[0-9]+([eE][+-]?[0-9]+)?", T_FLOATLIT},
+  {"^\\.[0-9]+([eE][+-]?[0-9]+)?", T_FLOATLIT},
+  {"^[0-9]+\\.([eE][+-]?[0-9]+)", T_FLOATLIT},
+  {"^[0-9]+([eE][+-]?[0-9]+)", T_FLOATLIT},
+
+
+  {"^[0-9]+", T_INTLIT},
+
   {"^\"([^\"\\\\]|\\\\[ntr\"\\\\])*\"", T_STRINGLIT},
 //   {"^'(?:[^'\\\\]|\\\\[ntr\"'\\\\])'", T_CHARLIT},
+  {"^'([^'\\\\]|\\\\[ntr\"'\\\\])'", T_CHARLIT},
+
   
   {"^int", T_INT},
   {"^float", T_FLOAT},
@@ -105,6 +117,18 @@ Token *nextRegexToken(RegexLexer *l) {
             char *lexeme = strndup(remaining_src + match.rm_so, match_length);
 
             TokenType type = rules[i].type;
+            if(type == T_FLOATLIT || type == T_INTLIT) {
+                // Remove trailing dot if present
+                if(l->src[l->pos + match_length] == '\0' || isSpace(l->src[l->pos + match_length]) || strchr(";,)}]+-*/%<>=!&|^", l->src[l->pos + match_length])) {
+                    
+                }
+                else {
+                    report_error(l->filename, l->src, l->line, l->col, "Invalid numeric literal");
+                    free(lexeme);
+                    regfree(&regex);
+                    return NULL;
+                }
+            }
 
             // Update lexer position
             for (int j = 0; j < match_length; j++) {
