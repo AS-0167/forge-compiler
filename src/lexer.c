@@ -166,9 +166,9 @@ Token *nextToken(Lexer *l) {
 
       buffer[buf_index] = '\0';
 
-      char *value = strdup(buffer);
+      // char *value = strdup(buffer);
       tok->type = T_STRINGLIT;
-      tok->lexeme = value;
+      tok->lexeme = strdup(buffer);
       tok->line = start_line;
       tok->col = start_col;
       return tok;
@@ -235,7 +235,7 @@ Token *nextToken(Lexer *l) {
       lexeme[0] = value;
       lexeme[1] = '\0';
       tok->type = T_CHARLIT;
-      tok->lexeme = lexeme;
+      tok->lexeme = strdup(lexeme);
       tok->line = start_line;
       tok->col = start_col;
       return tok;
@@ -325,7 +325,7 @@ Token *nextToken(Lexer *l) {
       } else {
           char *value = strdup(buffer);
           tok->type = (has_dot || has_exp) ? T_FLOATLIT : T_INTLIT;
-          tok->lexeme = value;
+          tok->lexeme =  strdup(buffer);
           tok->line = start_line;
           tok->col = start_col;
           return tok;
@@ -424,7 +424,7 @@ Token *nextToken(Lexer *l) {
       else if (strcmp(value, "print") == 0) type = T_PRINT;
       else type = T_IDENTIFIER;
       tok->type = type;
-      tok->lexeme = value;
+      tok->lexeme =  strdup(buffer);
       tok->line = start_line;
       tok->col = start_col;
       return tok;

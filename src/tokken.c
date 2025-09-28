@@ -14,7 +14,7 @@ Token *create_token(TokenType type, const char *lexeme, int line, int col) {
 
 void destroy_token(Token *tok) {
   if (tok) {
-    free(tok->lexeme);
+    // free(tok->lexeme);
     free(tok);
   }
 }
@@ -30,7 +30,7 @@ void print_token(Token *tok) {
 }
 
 const char *token_type_to_string(TokenType type) {
-  printf("Converting token type %d to string\n", type);
+  // printf("Converting token type %d to string\n", type);
   
   switch (type) {
 

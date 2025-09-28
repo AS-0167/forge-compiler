@@ -31,7 +31,7 @@ char *read_file(const char *filename) {
   rewind(file);
   buffer = malloc(sizeof(char) * (length + 1));
   fread(buffer, 1, length, file);
-  printf("Read %ld bytes from file in buffer %s\n", length, buffer);
+  printf("Read %ld bytes from file in buffer\n\n %s\n", length, buffer);
   buffer[length] = '\0';
   printf("File content loaded into buffer\n");
   fclose(file);

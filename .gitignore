@@ -1,0 +1,6 @@
+.gdb_history
+.vscode/
+.dist/
+build/
+*.o
+*.exe
