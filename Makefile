@@ -3,11 +3,11 @@ CFLAGS   = -Wall -Wextra -Iinclude
 BUILD    = build
 OBJDIR   = $(BUILD)/obj
 
-SRC_COMMON = src/lexer.c src/tokken.c src/utils.c src/lexer_regex.c src/ast.c src/parser.c
+SRC_COMMON = src/lexer.c src/tokken.c src/utils.c src/lexer_regex.c src/ast.c src/parser.c src/scope.c 
 OBJ_COMMON = $(SRC_COMMON:src/%.c=$(OBJDIR)/%.o)
 
 MAIN1 = src/main.c
-BIN1  = $(BUILD)/parser
+BIN1  = $(BUILD)/scope
 
 # MAIN2 = src/main_regex.c
 # BIN2  = $(BUILD)/lexer_regex

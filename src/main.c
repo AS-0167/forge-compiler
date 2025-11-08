@@ -3,6 +3,7 @@
 #include "../include/lexer.h"
 #include "../include/parser.h"
 #include "../include/ast.h"
+#include "../include/scope.h"
 
 int main(int argc, char **argv) {
     // const char *src = "fn add(a, b) { return a + b; }\nint x = add(2, 3);\nprint(x);";
@@ -18,6 +19,10 @@ int main(int argc, char **argv) {
     ParseError err;
     Node *prog = parse_program(&p, &err);
     ast_print(prog, 0);
+    printf("\n=== Scope Analysis ===\n");
+    ScopeError sc_err = analyze_scopes(prog);
+    if (sc_err.type == ERR_NONE)
+        printf("Scope analysis passed ✅\n");
     ast_free(prog);
     parser_free(&p);
     return 0;
