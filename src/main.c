@@ -4,6 +4,7 @@
 #include "../include/parser.h"
 #include "../include/ast.h"
 #include "../include/scope.h"
+#include "../include/typechk.h"
 
 int main(int argc, char **argv) {
     // const char *src = "fn add(a, b) { return a + b; }\nint x = add(2, 3);\nprint(x);";
@@ -20,9 +21,17 @@ int main(int argc, char **argv) {
     Node *prog = parse_program(&p, &err);
     ast_print(prog, 0);
     printf("\n=== Scope Analysis ===\n");
-    ScopeError sc_err = analyze_scopes(prog);
+    Scope *global = NULL;
+    ScopeError sc_err = analyze_scopes(prog, &global);
     if (sc_err.type == ERR_NONE)
-        printf("Scope analysis passed ✅\n");
+        printf("Scope analysis passed \n");
+    
+    TypeChkReport rep = type_check(prog, global);
+    if (rep.error_count > 0) {
+        printf("Found %d type errors\n", rep.error_count);
+    } else {
+        printf("No type errors\n");
+    }
     ast_free(prog);
     parser_free(&p);
     return 0;
