@@ -5,6 +5,7 @@
 #include "../include/ast.h"
 #include "../include/scope.h"
 #include "../include/typechk.h"
+#include "../include/ir.h"
 
 int main(int argc, char **argv) {
     // const char *src = "fn add(a, b) { return a + b; }\nint x = add(2, 3);\nprint(x);";
@@ -32,6 +33,8 @@ int main(int argc, char **argv) {
     } else {
         printf("No type errors\n");
     }
+    IRList *ir = generate_ir(prog);
+    ir_print(ir);
     ast_free(prog);
     parser_free(&p);
     return 0;
