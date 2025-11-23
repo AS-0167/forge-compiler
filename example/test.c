@@ -4,7 +4,8 @@ fn int my_fn(int x, float y) {
     float my_float = x+y;
     string my_str = "hmm";
     bool my_bool=x==453 ;
-    return x;
+    char a = 'z';
+    return a;
 }
 
 
@@ -18,5 +19,5 @@ fn int main() {
     // char z=5;
     char c = 'a';
     float y = .4e-4;
-    return x;
+    return 0;
 }

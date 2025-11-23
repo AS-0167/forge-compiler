@@ -128,7 +128,7 @@ static TypeRes type_assign(Node *n) {
 static TypeRes type_expr(Node *n) {
     if (!n) { report(TC_EmptyExpression, "Empty expression encountered", 0); return (TypeRes){ .type = NULL }; }
 
-    printf("Typing expression node at line %d, type %d\n", n->line, n->type);
+    // printf("Typing expression node at line %d, type %d\n", n->line, n->type);
 
     switch (n->type) {
         case NODE_INT_LIT: {
@@ -214,12 +214,27 @@ static void tc_block(Node *block) {
         tc_stmt(block->as.block.stmts[i]);
 }
 
+// static void tc_block(Node *block) {
+//     if (!block) return;
+//     Scope *prev_scope = current_scope;
+//     /* push a new scope whose parent is the previous scope */
+//     Scope *blk_scope = scope_new(prev_scope);
+//     current_scope = blk_scope;
+
+//     for (int i = 0; i < block->as.block.stmt_count; ++i)
+//         tc_stmt(block->as.block.stmts[i]);
+
+//     /* pop */
+//     current_scope = prev_scope;
+//     scope_free(blk_scope);
+// }
+
 static void tc_stmt(Node *stmt) {
-    printf("Type checking statement at line %d, type %d\n", stmt ? stmt->line : -1, stmt ? stmt->type : -1);
+    // printf("Type checking statement at line %d, type %d\n", stmt ? stmt->line : -1, stmt ? stmt->type : -1);
     if (!stmt) return;
     switch (stmt->type) {
         case NODE_VAR_DECL:
-            /* check initializer type against var declared type */
+            /* First, check the initializer (it should not see the variable itself). */
             if (stmt->as.var_decl.init) {
                 TypeRes rv = type_expr(stmt->as.var_decl.init);
                 const char *decl_t = canon_type(stmt->as.var_decl.type_name);
@@ -228,13 +243,38 @@ static void tc_stmt(Node *stmt) {
                         if (!(strcmp(decl_t, "float")==0 && strcmp(rv.type, "int")==0)) {
                             char buf[256];
                             snprintf(buf, sizeof(buf), "Variable declaration '%s' type '%s' incompatible with initializer type '%s'",
-                                     stmt->as.var_decl.name, decl_t, rv.type);
+                                    stmt->as.var_decl.name, decl_t, rv.type);
                             report(TC_ErroneousVarDecl, buf, stmt->line);
                         }
                     }
                 }
             }
+            /* Now register the variable in the CURRENT scope so later statements in this block see it. */
+            if (current_scope) {
+                scope_add_var(current_scope, stmt->as.var_decl.name, stmt->as.var_decl.type_name, stmt->line);
+            } else {
+                /* Should not happen if type_check sets up a global/current scope properly. */
+                report(TC_ErroneousVarDecl, "No current scope while declaring variable", stmt->line);
+            }
             break;
+
+        // case NODE_VAR_DECL:
+        //     /* check initializer type against var declared type */
+        //     if (stmt->as.var_decl.init) {
+        //         TypeRes rv = type_expr(stmt->as.var_decl.init);
+        //         const char *decl_t = canon_type(stmt->as.var_decl.type_name);
+        //         if (rv.type && decl_t) {
+        //             if (strcmp(decl_t, rv.type) != 0) {
+        //                 if (!(strcmp(decl_t, "T_FLOAT")==0 && strcmp(rv.type, "T_INT")==0)) {
+        //                     char buf[256];
+        //                     snprintf(buf, sizeof(buf), "Variable declaration '%s' type '%s' incompatible with initializer type '%s'",
+        //                              stmt->as.var_decl.name, decl_t, rv.type);
+        //                     report(TC_ErroneousVarDecl, buf, stmt->line);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     break;
 
         case NODE_EXPR_STMT:
             type_expr(stmt->as.expr_stmt.expr);
