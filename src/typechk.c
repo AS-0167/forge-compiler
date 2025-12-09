@@ -351,7 +351,7 @@ static void check_function_returns(Node *fn) {
     } c = { .decl_ret = ret_type };
 
     /* local recursive fn */
-    void walk(Node *n){
+    void walk(Node *n) {
         if (!n) return;
         if (n->type == NODE_RETURN) {
             if (c.decl_ret == NULL) {
@@ -375,6 +375,7 @@ static void check_function_returns(Node *fn) {
                     report(TC_ErroneousReturnType, buf, n->line);
                 }
             }
+            
             return;
         }
         /* descend into children */
